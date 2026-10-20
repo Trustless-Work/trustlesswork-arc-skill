@@ -102,6 +102,23 @@ You are the judge. Be neutral: you do not work for whoever opened the dispute, o
 | Single-release | `{"contractId":"<ESCROW>","disputeResolver":"<YOU>","distributions":[{"address":"<RECEIVER>","amount":0.75},{"address":"<FUNDER>","amount":0.25}]}` |
 | Multi-release | Add `"milestoneIndexes":[0]` with the disputed milestones |
 
+**Check who the build pays before you send it.** Besides the checks in `SKILL.md` ("Check every build before you
+send it"), the recipients and amounts travel inside `transaction.data`: decode them and compare them with your
+decision. This works for `resolve-dispute` and `withdraw-remaining-funds` of both kinds:
+
+```bash
+python3 -c '
+import sys
+d = bytes.fromhex(sys.argv[1][10:]); w = lambda i: int.from_bytes(d[i:i+32], "big")
+arrays = [[w(w(32*k) + 32 + 32*j) for j in range(w(w(32*k)))] for k in range(len(d) // 32) if 32*k < w(0)]
+print("to:", ["0x%040x" % a for a in arrays[-2]], "amounts (base units):", arrays[-1])
+' "$(echo "$BUILT" | jq -r .transaction.data)"
+```
+
+With Foundry installed, `cast calldata-decode 'resolveDispute(address[],uint256[])' <data>` does the same
+(multi-release: `'resolveDispute(uint32[],address[],uint256[])'`). If the wallets or amounts differ from yours, do
+not send it.
+
 To confirm the payout, read the wallets' USDC before and after you resolve, for example with
 `circle contract query "balanceOf(address)" <ADDRESS> --contract 0x3600000000000000000000000000000000000000 --chain ARC-TESTNET --output json`
 (the result is in `data.outputData`, as hex, in base units).
@@ -115,7 +132,7 @@ escrow: someone funded twice, funded more than needed, or funded after the relea
   resolver's job, not optional.
 - **How:** `withdraw-remaining-funds`, with the same body as single-release `resolve-dispute` (in multi-release too,
   once every milestone is released or resolved). The distributions add up to the whole `balance`; the fees apply
-  again.
+  again. Check who the build pays before you send it, as for a resolution.
 - **To whom:** back to whoever sent the extra, unless the description or the human says otherwise. The Funded events
   hold, for each funding, the funder (third topic) and two numbers in base units: the amount received, then the new
   funded total. `fundedAmount` minus `amount` (multi-release: minus the milestones' amounts) is the extra; it belongs

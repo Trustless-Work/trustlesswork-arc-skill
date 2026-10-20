@@ -76,12 +76,16 @@ resolver settles any disagreement with it.
 
 ## Funding it
 
-1. **Check the terms right before you fund.** The admin can change them until the first funding. Compare the amount,
+1. **Verify the escrow** as in `SKILL.md` ("Check every build before you send it", check 3), once: after your own
+   deploy, check the `contractId` you deployed; if someone else created it, check its address. Never approve USDC to
+   an address that is not `VERIFIED`.
+2. **Check the terms right before you fund.** The admin can change them until the first funding. Compare the amount,
    the token, the roles, the description and the milestones with what was agreed. If they changed without
    agreement, do not fund; tell the human.
-2. **Approve the USDC** directly with the CLI, for the exact amount in base units (amount × 1,000,000).
-3. **Build and send `fund`:** `{"contractId":"<ESCROW>","signer":"<YOU>","amount":1}`. If the approval is missing,
+3. **Approve the USDC** directly with the CLI, to the verified escrow, for the exact amount in base units
+   (amount × 1,000,000).
+4. **Build and send `fund`:** `{"contractId":"<ESCROW>","signer":"<YOU>","amount":1}`. If the approval is missing,
    the build answers `TOKEN_ALLOWANCE_TOO_LOW`.
-4. **Read the escrow:** `balance` should now equal `amount`.
+5. **Read the escrow:** `balance` should now equal `amount`.
 
 Then follow the loop in `SKILL.md`: the worker delivers next.

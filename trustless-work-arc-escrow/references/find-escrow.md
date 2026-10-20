@@ -27,7 +27,8 @@ for i in $(seq 1 10); do
 done
 ```
 
-Repeat runs until it prints `ESCROW=…` lines (newest first), within your time limit, keeping the same `FROM` and
+An escrow found this way was created by the official factory, so it passes the escrow check in `SKILL.md`. Repeat
+runs until it prints `ESCROW=…` lines (newest first), within your time limit, keeping the same `FROM` and
 adding to `SKIP` from one run to the next. One query covers at most 9,999 blocks (about 80 minutes): for a longer
 watch, move `FROM` forward. Then read each escrow through the API:
 - **Yours:** it names you in the role you expect and it is not closed.
