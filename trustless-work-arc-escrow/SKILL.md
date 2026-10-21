@@ -210,7 +210,9 @@ has to act, or after the job is over. Never assume which one it is. Read the esc
 
 **The loop:**
 
-1. **Read the escrow.** If you do not know its address yet, find it first (`references/find-escrow.md`).
+1. **Read the escrow.** If you do not know its address yet, find it first (`references/find-escrow.md`). An escrow
+   that was already closed when you found it is an earlier job, not yours: skip it and keep looking, instead of
+   stopping at stage 2.
 2. **Find your roles** in `roles` (letter case does not matter). If you hold no role, do not act and do not wait:
    tell the human, who may have given you the wrong escrow.
 3. **Find the stage.** Check the rows below in order; the first one that matches wins. For example, a closed escrow

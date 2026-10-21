@@ -30,10 +30,17 @@ done
 An escrow found this way was created by the official factory, so it passes the escrow check in `SKILL.md`. Repeat
 runs until it prints `ESCROW=…` lines (newest first), within your time limit, keeping the same `FROM` and
 adding to `SKIP` from one run to the next. One query covers at most 9,999 blocks (about 80 minutes): for a longer
-watch, move `FROM` forward. Then read each escrow through the API:
-- **Yours:** it names you in the role you expect and it is not closed.
-- **Not yours** (closed, for example a job the client finished earlier, or it does not name you as expected): add it
-  to `SKIP` and keep watching. The loop then ignores it and waits for a newer one.
+watch, move `FROM` forward. The look-back can show escrows from earlier jobs between the same wallets, minutes old.
+Read each escrow through the API and decide:
+- **Closed (released or resolved): an earlier job, never yours.** It does not matter that it names you, that its
+  description looks like your job, or that your own wallet delivered it: an earlier run or another session did that
+  work, and nothing is left to do in it. Add it to `SKIP` and keep watching. Do not report it as your job.
+- **Open and naming you in the role you expect: yours,** with one exception. If the human said the escrow is about
+  to be created, your job still needs your part: an open escrow that your wallet had already completed before you
+  started (for example, already delivered) belongs to an earlier run. Add it to `SKIP` too.
+- **Not naming you as expected:** not yours. Add it to `SKIP`.
+- **If everything you found is skipped, your job has not been created yet:** keep watching until a new escrow
+  appears, within your time limit. Never stop just because the escrows you found are finished.
 - **Before working on it:** if the human told you the agreed price or terms, check that the escrow matches them. If
   it does not, tell the human instead of working.
 - **Several open escrows from that client name you:** each one is a separate job. Compare each description with the
