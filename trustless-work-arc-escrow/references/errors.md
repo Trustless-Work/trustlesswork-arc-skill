@@ -25,7 +25,9 @@ resend an old build.
 | `ESCROW_BALANCE_NOT_ENOUGH_TO_SEND_EARNINGS`, `ESCROW_INSUFFICIENT_FUNDS_FOR_RESOLUTION` | The escrow lacks USDC for this payout | The funder must fund the missing amount |
 | `ESCROW_UNAUTHORIZED_TO_CHANGE_DISPUTE_FLAG` | Multi-release: you may not dispute that milestone | A receiver can only dispute its own milestones |
 | `ESCROW_NOT_IN_DISPUTE`, `ESCROW_NOT_FULLY_PROCESSED` | Nothing to resolve, or milestones are still open | Read the escrow and find the stage again |
-| `API_KEY_INVALID` | The key is missing or wrong | Send `-H "x-api-key: $TW_API_KEY"` with `TW_API_KEY` set in the same command (see "Before you start" in `SKILL.md`). If it still fails, ask the human for the key |
+| `RATE_LIMITED` (HTTP 429) | Too many requests for this key or address | Wait the seconds in the `Retry-After` header, then retry. Keep waits at one check every 10 seconds |
+| `API_KEY_ROLE_INSUFFICIENT` | The key cannot use this endpoint | Ask the human for a key with the `ESCROW_MANAGER` role |
+| `API_KEY_INVALID` | The key is missing, wrong, revoked or expired | Send `-H "x-api-key: $TW_API_KEY"` with `TW_API_KEY` set in the same command (see "Before you start" in `SKILL.md`). If it still fails, ask the human for the key |
 
 Circle CLI errors:
 

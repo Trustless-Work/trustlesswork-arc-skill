@@ -309,6 +309,7 @@ resend an old build. The full table is in `references/errors.md`.
 | `ESCROW_ALREADY_RELEASED`, `ESCROW_ALREADY_RESOLVED` | The escrow is closed: nothing to do |
 | `ESCROW_ALREADY_IN_DISPUTE`, `ESCROW_MILESTONE_ALREADY_DISPUTED` | Someone disputed first: do not dispute again. Wait for the resolution |
 | `ESCROW_PROPERTIES_MISMATCH` | The escrow changed since the build: read it again and rebuild |
-| `API_KEY_INVALID` | Send `-H "x-api-key: $TW_API_KEY"` with `TW_API_KEY` set in the same command. If it still fails, ask the human for the key |
+| `API_KEY_INVALID` | Send `-H "x-api-key: $TW_API_KEY"` with `TW_API_KEY` set in the same command. If it still fails, the key may be revoked or expired: ask the human for a valid one |
+| `RATE_LIMITED` (HTTP 429) | Too many requests: wait the seconds in the `Retry-After` header, then go on. Do not poll faster than every 10 seconds |
 | CLI: `Fails to perform transaction estimation` or `ESTIMATION_ERROR` | The call would fail on-chain: build it again with the API to get the exact `code`. Do not retry blindly |
 | CLI: not logged in, token expired, or Terms not accepted | Ask the human to log in or accept the Terms (Circle's `setup.md`). Never accept them yourself |
