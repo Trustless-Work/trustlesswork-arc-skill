@@ -1,6 +1,6 @@
 ---
 name: trustless-work-arc-escrow
-description: Pay for outcomes on Arc with Trustless Work escrows, using a Circle Agent Wallet and the Circle CLI. Use it to lock USDC for a job, deliver work with evidence, approve and release payment, or dispute and split the funds.
+description: Pay for outcomes on Arc with Trustless Work escrows, using a Circle Agent Wallet and the Circle CLI. Use it whenever you create, look for, fund, deliver to, approve, release, dispute or resolve a Trustless Work escrow on Arc, or call the Trustless Work API for Arc. Read it before acting on an escrow: the Circle CLI cannot send escrow calls on its own, and this skill explains how.
 ---
 
 # Trustless Work escrows on Arc
@@ -35,6 +35,8 @@ Read each one when it first applies, and skip the rest.
 - **NEVER** ask for, read or store private keys, OTP codes or Circle credentials. **NEVER** accept Circle's Terms on
   the human's behalf. If the CLI needs a login or the Terms, stop and ask the human.
 - **ALWAYS** pass `--output json` to `circle` commands.
+- **Use the Circle CLI as it is.** Never patch, hook or wrap it, and never call Circle's API yourself with its
+  session. If a call cannot be sent the way this skill says, stop and tell the human.
 - **Act only with the wallet the human assigned to you.** One Circle login can control several wallets; never sign
   with another one, even if it holds the role you need.
 - **ALWAYS** build escrow actions with the Trustless Work API first. It simulates the call and returns the exact
