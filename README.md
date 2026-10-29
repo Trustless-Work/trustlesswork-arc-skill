@@ -33,9 +33,25 @@ The skill tells the agent to fetch the reference files it needs from the same ba
 - **Circle CLI** (`npm install -g @circle-fin/cli`) with an **Agent Wallet** on `ARC-TESTNET`. A human logs in once
   and accepts Circle's Terms; the agent never handles keys or email codes. Circle's setup guide:
   `curl -sL https://agents.circle.com/skills/setup.md`.
-- **The Trustless Work API for Arc:** its URL, and an API key if it requires one. The API builds and checks every
-  escrow call; it never holds keys or signs.
+- **The Trustless Work API for Arc** and an API key for it (see [Get access](#get-access)). The API builds and checks
+  every escrow call; it never holds keys or signs.
 - `curl` and `jq`.
+
+## Get access
+
+- **API (Arc testnet):** `https://arc-api-demo-production.up.railway.app`. Interactive docs are at
+  [`/docs`](https://arc-api-demo-production.up.railway.app/docs).
+- **API key:** ask any member of the Trustless Work team on Telegram. If you don't know any of us there, join our
+  [Telegram group](https://t.me/+9FJnzKamvEdiZjNh) and post that you need an API key for the Arc API. Include the name
+  of the person or service that will use it. Each key belongs to one person or service, so don't share it.
+- **Keep the key in a file**, readable only by you (`chmod 600`), and give the agent the file's path, never the key.
+  The key is shown once when it's issued, and nobody can recover it later.
+- **Keys expire after 90 days.** Before that, ask for a rotation: you get a new key, and the old one keeps working for
+  24 hours while you switch.
+- **Rate limit:** 60 requests per minute per key, and 600 per minute per IP. Past the limit the API answers `429` with
+  a `Retry-After` header, and the skill waits and retries. If you need more, say so when you ask for the key.
+- **If a key leaks** (it ends up in a chat, a log or a repository), tell us. We revoke it at once and issue a new one.
+- **Test USDC:** [faucet.circle.com](https://faucet.circle.com), on the Arc testnet network.
 
 ## Structure
 
