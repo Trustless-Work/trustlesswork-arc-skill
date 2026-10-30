@@ -11,8 +11,8 @@ disagree, any of them can open a dispute, and a neutral dispute resolver decides
 split. Nobody holds the money but the contract.
 
 You act through your **Circle Agent Wallet** with the **Circle CLI**. The **Trustless Work API** builds and checks
-every escrow call for you; the CLI signs and sends it, with gas paid by Circle. This skill covers **Arc testnet**
-(`ARC-TESTNET`) only.
+every escrow call for you; the CLI signs and sends it. This skill covers **Arc testnet** and **Arc mainnet**: see
+"Networks" below. Testnet is the default; mainnet moves real money.
 
 **This file has what every agent needs.** Before you act, also read the reference files that match your situation.
 They sit next to this file, in `references/`; if you fetched this file by URL, fetch them from the same base URL.
@@ -32,6 +32,8 @@ Read each one when it first applies, and skip the rest.
 
 ## Rules
 
+- **Work on the network the human chose:** testnet, unless the human explicitly says mainnet. Never switch networks
+  on your own. Take the `--chain`, the RPC, the API URL and every address from the same column of "Networks".
 - **NEVER** ask for, read or store private keys, OTP codes or Circle credentials. **NEVER** accept Circle's Terms on
   the human's behalf. If the CLI needs a login or the Terms, stop and ask the human.
 - **ALWAYS** pass `--output json` to `circle` commands.
@@ -59,14 +61,17 @@ Read each one when it first applies, and skip the rest.
 
 ## Before you start
 
-1. **Check the Circle CLI login:** `circle wallet status --output json`. `data.testnet.tokenStatus` must be `VALID`.
+1. **Check the Circle CLI login** for your network: `circle wallet status --output json`. `data.testnet.tokenStatus`
+   (testnet) or `data.mainnet.tokenStatus` (mainnet) must be `VALID`. Testnet and mainnet sessions are separate.
    Otherwise follow Circle's setup, where the human types the email code:
    `curl -sL https://agents.circle.com/skills/setup.md`.
 2. **Know your wallet.** Use the address the human gave you (letter case in addresses does not matter). Otherwise
-   list yours: `circle wallet list --type agent --chain ARC-TESTNET --output json`.
-3. **Know the Trustless Work API URL** (call it `TW_API`; the human gives it to you) and check it:
-   `curl -s "$TW_API/health"`. Use only the URL the human gives you. The API builds and checks calls but holds no
-   keys and cannot sign; you check what it returns against the chain before signing anything.
+   list yours: `circle wallet list --type agent --chain <CHAIN> --output json`.
+3. **Know the Trustless Work API URL** (call it `TW_API`; the human gives it to you). It ends with the network,
+   `…/testnet` or `…/mainnet`; a URL without either is testnet. Check it: `curl -s "$TW_API/health"`. Its `network` and `chainId` must be yours
+   (see "Networks"), and its `factories` must be the ones in that table; otherwise do not use it and tell the human.
+   Use only the URL the human gives you. The API builds and checks calls but holds no keys and cannot sign; you
+   check what it returns against the chain before signing anything.
 4. **Know whether the API needs a key.** `/health` is always open; the escrow routes may not be. Check one:
 
    ```bash
@@ -79,19 +84,32 @@ Read each one when it first applies, and skip the rest.
    variables do not survive between commands), for example `TW_API_KEY=$(cat <key file>)`. Never print, echo or store
    the key. If the API needs no key, leave `TW_API_KEY` empty: the header is then ignored.
 
-## Network and escrow types
+## Networks
 
-| What | Value |
-| --- | --- |
-| Chain (CLI `--chain`) | `ARC-TESTNET` |
-| USDC (ERC-20, 6 decimals) | `0x3600000000000000000000000000000000000000` |
-| Single-release factory | `0x829fE7040797Df140636901e79F1bA448B7e9ae0` |
-| Multi-release factory | `0x7B04302DCEC430D74e8e38B35Cef96EbaD51b7fC` |
-| Single-release escrow implementation | `0x1F0E0C5b704B3e10609Bf4862071Db815a0c839b` |
-| Multi-release escrow implementation | `0xF7fBE8aca4D4A2A7552167246Df439931da26A5A` |
+| What | Arc testnet | Arc mainnet |
+| --- | --- | --- |
+| CLI `--chain` (`<CHAIN>` in the commands) | `ARC-TESTNET` | `ARC` |
+| Chain ID (in the API's `/health`) | `5042002` | `5042` |
+| RPC (`<RPC>` in the commands) | `https://rpc.testnet.arc.io` | `https://rpc.mainnet.arc.io` |
+| API URL ends with | `/testnet` | `/mainnet` |
+| Explorer | `https://explorer.testnet.arc.io` | `https://explorer.arc.io` |
+| USDC (ERC-20, 6 decimals) | `0x3600000000000000000000000000000000000000` | `0x3600000000000000000000000000000000000000` |
+| Single-release factory | `0x829fE7040797Df140636901e79F1bA448B7e9ae0` | `0x6a65ebD7820604446898df89CeA284a46E9B621c` |
+| Multi-release factory | `0x7B04302DCEC430D74e8e38B35Cef96EbaD51b7fC` | `0x69d4Fd89C4dCf43d2A08f4552eB15D66Cb9a6ab3` |
+| Single-release escrow implementation | `0x1F0E0C5b704B3e10609Bf4862071Db815a0c839b` | `0xc04bfd01e08bE40419581b8587b347df4beC15E5` |
+| Multi-release escrow implementation | `0xF7fBE8aca4D4A2A7552167246Df439931da26A5A` | `0xd9733C7775f55F877Eb32d62dE90F90Ddc138E28` |
 
 These addresses are the source of truth. If the API's `/health` lists other factories, do not use that API; tell the
 human.
+
+**On mainnet the USDC is real.**
+- There is no faucet: the human funds the wallet (`circle wallet fund --method crypto|fiat`). Never start a funding
+  or a purchase yourself.
+- Ask the human to set a spending limit on the wallet if it has none (`circle wallet limit`, mainnet only).
+- If Circle does not sponsor the gas on mainnet, it comes out of the wallet's USDC (about a cent per transaction),
+  so the wallet needs a little more than the amount it moves.
+
+## Escrow types
 
 - **Single-release** (`single-release`): one amount, one receiver, paid once every milestone is approved.
 - **Multi-release** (`multi-release`): each milestone has its own amount and receiver and is paid on its own.
@@ -119,7 +137,7 @@ base units:
 ```bash
 circle wallet execute "approve(address,uint256)" <ESCROW> <AMOUNT_IN_BASE_UNITS> \
   --contract 0x3600000000000000000000000000000000000000 \
-  --address <YOUR_WALLET> --chain ARC-TESTNET --output json
+  --address <YOUR_WALLET> --chain <CHAIN> --output json
 ```
 
 **2. Every escrow action: build it with the API, then send it through `execute(bytes)`.** The Circle CLI cannot pass
@@ -135,7 +153,7 @@ echo "$BUILT" | jq -r '"to=\(.transaction.to) selector=\(.transaction.data[0:10]
 # Check both against "Check every build before you send it", then send:
 circle wallet execute "execute(bytes)" "$(echo "$BUILT" | jq -r .transaction.data)" \
   --contract "$(echo "$BUILT" | jq -r .transaction.to)" \
-  --address <YOUR_WALLET> --chain ARC-TESTNET --output json
+  --address <YOUR_WALLET> --chain <CHAIN> --output json
 ```
 
 - `<KIND>` is `single-release` or `multi-release`, and `<ESCROW>` is the escrow address (`contractId`). Each
@@ -146,8 +164,9 @@ circle wallet execute "execute(bytes)" "$(echo "$BUILT" | jq -r .transaction.dat
   That is correct: send it as is.
 - Building sends nothing, so you can build as often as you need. Use only `transaction.to` and `transaction.data`;
   the other fields are for wallets that sign raw transactions.
-- Circle sponsors gas, so the `networkFee` in the result does not come out of your balance. Check your USDC with
-  `circle wallet balance --address <YOU> --chain ARC-TESTNET --output json`. USDC shows twice there, as the native gas
+- On testnet Circle sponsors the gas, so the `networkFee` in the result does not come out of your balance (on
+  mainnet, see "Networks"). Check your USDC with
+  `circle wallet balance --address <YOU> --chain <CHAIN> --output json`. USDC shows twice there, as the native gas
   token (18 decimals) and as the ERC-20 (6 decimals): it is the same money, counted once. `[]` means zero.
 - Every payment pays a 0.3% Trustless Work fee plus the platform fee, taken from the amount paid: releasing 1 USDC
   with no platform fee pays the receiver 0.997.
@@ -157,7 +176,7 @@ circle wallet execute "execute(bytes)" "$(echo "$BUILT" | jq -r .transaction.dat
 The API only prepares calls. Before you sign, check what it returned against the chain, so that a wrong or
 compromised API cannot send your money anywhere else. If any check fails, do not send anything; tell the human.
 
-1. **The contract (`transaction.to`):** for `deploy`, the factory of that kind in "Network and escrow types". For
+1. **The contract (`transaction.to`):** for `deploy`, the factory of that kind and network in "Networks". For
    every other action, the escrow you are working on, verified as below.
 2. **The function (the first 10 characters of `transaction.data`):** the selector of the action you built. Never send
    `0x09c5eabe` (`execute` itself) inside `execute`.
@@ -181,7 +200,7 @@ compromised API cannot send your money anywhere else. If any check fails, do not
    table, and only the official factory can initialize one:
 
    ```bash
-   CODE=$(curl -s -X POST https://rpc.testnet.arc.io -H 'content-type: application/json' \
+   CODE=$(curl -s -X POST <RPC> -H 'content-type: application/json' \
      -d '{"jsonrpc":"2.0","id":1,"method":"eth_getCode","params":["<ESCROW>","latest"]}' | jq -r .result)
    IMPL=<implementation for its kind, lowercase, without 0x>
    [ "$CODE" = "0x363d3d373d3d3d363d73${IMPL}5af43d82803e903d91602b57fd5bf3" ] && echo VERIFIED

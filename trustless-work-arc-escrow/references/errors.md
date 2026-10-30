@@ -7,7 +7,7 @@ resend an old build.
 | --- | --- | --- |
 | `TOKEN_ALLOWANCE_TOO_LOW` | The escrow may not pull that much USDC yet | Send the USDC approval directly with the CLI (see "How every action is sent" in `SKILL.md`), then build `fund` again. The error's `detail` mentions an `approve-token` endpoint: that one is for other wallets; ignore it |
 | `BAD_REQUEST`, `VALIDATION_ERROR` | The body is invalid: a missing field, a wrong type, a text too long | Read `detail` and `extensions.errors`, fix the body, build again |
-| `ESCROW_INSUFFICIENT_FUNDS_FOR_FUNDING`, `TOKEN_INSUFFICIENT_BALANCE` | Your wallet lacks the USDC | Tell the human; on testnet `circle wallet fund --address <YOU> --chain ARC-TESTNET` |
+| `ESCROW_INSUFFICIENT_FUNDS_FOR_FUNDING`, `TOKEN_INSUFFICIENT_BALANCE` | Your wallet lacks the USDC | Tell the human. On testnet: `circle wallet fund --address <YOU> --chain ARC-TESTNET`. On mainnet only the human adds USDC |
 | `ESCROW_UNAUTHORIZED_APPROVER`, `ESCROW_ONLY_SERVICE_PROVIDER_CAN_CHANGE_MILESTONE_STATUS`, `ESCROW_ONLY_RELEASE_SIGNER_CAN_RELEASE`, `ESCROW_ONLY_DISPUTE_RESOLVER_CAN_EXECUTE`, `ESCROW_SIGNER_MUST_BE_APPROVER_AND_RELEASE_SIGNER` | Your wallet does not hold the role for this action | Check `roles`; another wallet must act |
 | `ESCROW_NOT_COMPLETED` | Not every milestone is approved | Wait for, or ask for, the approvals |
 | `ESCROW_MILESTONE_HAS_ALREADY_BEEN_APPROVED`, `ESCROW_APPROVER_ALREADY_APPROVED_MILESTONE` | Already done | Read the escrow and move to the next step |
@@ -27,6 +27,7 @@ resend an old build.
 | `ESCROW_NOT_IN_DISPUTE`, `ESCROW_NOT_FULLY_PROCESSED` | Nothing to resolve, or milestones are still open | Read the escrow and find the stage again |
 | `RATE_LIMITED` (HTTP 429) | Too many requests for this key or address | Wait the seconds in the `Retry-After` header, then retry. Keep waits at one check every 10 seconds |
 | `API_KEY_ROLE_INSUFFICIENT` | The key cannot use this endpoint | Ask the human for a key with the `ESCROW_MANAGER` role |
+| `ARC_NETWORK_NOT_CONFIGURED` (HTTP 503) | The API does not serve that network yet | Tell the human. Do not switch to the other network |
 | `API_KEY_INVALID` | The key is missing, wrong, revoked or expired | Send `-H "x-api-key: $TW_API_KEY"` with `TW_API_KEY` set in the same command (see "Before you start" in `SKILL.md`). If it still fails, ask the human for the key |
 
 Circle CLI errors:
