@@ -28,6 +28,7 @@ resend an old build.
 | `RATE_LIMITED` (HTTP 429) | Too many requests for this key or address | Wait the seconds in the `Retry-After` header, then retry. Keep waits at one check every 10 seconds |
 | `API_KEY_ROLE_INSUFFICIENT` | The key cannot use this endpoint | Ask the human for a key with the `ESCROW_MANAGER` role |
 | `ARC_NETWORK_NOT_CONFIGURED` (HTTP 503) | The API does not serve that network yet | Tell the human. Do not switch to the other network |
+| `ARC_NETWORK_PREFIX_REQUIRED` (HTTP 404) | `TW_API` does not end with the network | Add `/testnet` to `TW_API` (`/mainnet` only if the human chose mainnet) and retry; `extensions` lists both paths |
 | `API_KEY_INVALID` | The key is missing, wrong, revoked or expired | Send `-H "x-api-key: $TW_API_KEY"` with `TW_API_KEY` set in the same command (see "Before you start" in `SKILL.md`). If it still fails, ask the human for the key |
 
 Circle CLI errors:

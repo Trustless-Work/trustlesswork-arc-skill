@@ -44,7 +44,8 @@ The skill tells the agent to fetch the reference files it needs from the same ba
   - Arc testnet: `https://arc-api-demo-production.up.railway.app/testnet`;
   - Arc mainnet: `https://arc-api-demo-production.up.railway.app/mainnet`.
 
-  A URL without `/testnet` or `/mainnet` still answers for testnet. Interactive docs are at
+  A URL without `/testnet` or `/mainnet` answers `404 ARC_NETWORK_PREFIX_REQUIRED`, with the two paths that
+  work. Interactive docs are at
   [`/docs`](https://arc-api-demo-production.up.railway.app/docs). The same key works on both networks.
 - **API key:** ask any member of the Trustless Work team on Telegram. If you don't know any of us there, join our
   [Telegram group](https://t.me/+9FJnzKamvEdiZjNh) and post that you need an API key for the Arc API. Include the name

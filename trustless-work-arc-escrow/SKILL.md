@@ -68,7 +68,8 @@ Read each one when it first applies, and skip the rest.
 2. **Know your wallet.** Use the address the human gave you (letter case in addresses does not matter). Otherwise
    list yours: `circle wallet list --type agent --chain <CHAIN> --output json`.
 3. **Know the Trustless Work API URL** (call it `TW_API`; the human gives it to you). It ends with the network,
-   `…/testnet` or `…/mainnet`; a URL without either is testnet. Check it: `curl -s "$TW_API/health"`. Its `network` and `chainId` must be yours
+   `…/testnet` or `…/mainnet`. If it ends with neither, add `/testnet` (or `/mainnet`, only if the human chose
+   mainnet): without the network every call answers `ARC_NETWORK_PREFIX_REQUIRED`. Check it: `curl -s "$TW_API/health"`. Its `network` and `chainId` must be yours
    (see "Networks"), and its `factories` must be the ones in that table; otherwise do not use it and tell the human.
    Use only the URL the human gives you. The API builds and checks calls but holds no keys and cannot sign; you
    check what it returns against the chain before signing anything.
