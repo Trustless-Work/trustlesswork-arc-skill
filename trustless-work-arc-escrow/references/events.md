@@ -6,7 +6,7 @@ your turn, the snapshot check in `SKILL.md` is simpler.
 Every action emits an event from the escrow's address. Read them with `eth_getLogs` on the Arc RPC.
 
 ```bash
-RPC=https://rpc.testnet.arc.io
+RPC=<RPC>   # of your network, from "Networks" in SKILL.md
 FROM=$(curl -s -X POST $RPC -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' | jq -r .result)
 # Later, as often as needed:

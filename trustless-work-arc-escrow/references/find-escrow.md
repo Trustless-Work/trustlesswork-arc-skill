@@ -8,8 +8,8 @@ client; if an orchestrator deploys for the client, ask the human for that wallet
 - The new escrow is the second topic of the event.
 
 ```bash
-RPC=https://rpc.testnet.arc.io
-FACTORY=0x829fE7040797Df140636901e79F1bA448B7e9ae0   # single-release. Multi-release: 0x7B04302DCEC430D74e8e38B35Cef96EbaD51b7fC
+RPC=<RPC>
+FACTORY=<the factory of the escrow's kind on your network, from "Networks" in SKILL.md>
 CLIENT_TOPIC=0x000000000000000000000000<client address in lowercase, without 0x>
 SKIP=''   # escrows you already checked and rejected: lowercase addresses separated by commas
 # First run only: compute FROM and note it. Later runs: FROM='<the value you noted>'

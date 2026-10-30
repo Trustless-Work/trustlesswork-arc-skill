@@ -120,7 +120,7 @@ With Foundry installed, `cast calldata-decode 'resolveDispute(address[],uint256[
 not send it.
 
 To confirm the payout, read the wallets' USDC before and after you resolve, for example with
-`circle contract query "balanceOf(address)" <ADDRESS> --contract 0x3600000000000000000000000000000000000000 --chain ARC-TESTNET --output json`
+`circle contract query "balanceOf(address)" <ADDRESS> --contract 0x3600000000000000000000000000000000000000 --chain <CHAIN> --output json`
 (the result is in `data.outputData`, as hex, in base units).
 
 ## Leftover funds
