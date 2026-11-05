@@ -61,19 +61,21 @@ Read each one when it first applies, and skip the rest.
 
 ## Before you start
 
-1. **Check the Circle CLI login** for your network: `circle wallet status --output json`. `data.testnet.tokenStatus`
+1. **Check the Circle CLI version:** `circle --version` must be 1.2.3 or newer, because older versions cannot pass
+   arrays or tuples. If it is older, run `circle update`.
+2. **Check the Circle CLI login** for your network: `circle wallet status --output json`. `data.testnet.tokenStatus`
    (testnet) or `data.mainnet.tokenStatus` (mainnet) must be `VALID`. Testnet and mainnet sessions are separate.
    Otherwise follow Circle's setup, where the human types the email code:
    `curl -sL https://agents.circle.com/skills/setup.md`.
-2. **Know your wallet.** Use the address the human gave you (letter case in addresses does not matter). Otherwise
+3. **Know your wallet.** Use the address the human gave you (letter case in addresses does not matter). Otherwise
    list yours: `circle wallet list --type agent --chain <CHAIN> --output json`.
-3. **Know the Trustless Work API URL** (call it `TW_API`; the human gives it to you). It ends with the network,
+4. **Know the Trustless Work API URL** (call it `TW_API`; the human gives it to you). It ends with the network,
    `…/testnet` or `…/mainnet`. If it ends with neither, add `/testnet` (or `/mainnet`, only if the human chose
    mainnet): without the network every call answers `ARC_NETWORK_PREFIX_REQUIRED`. Check it: `curl -s "$TW_API/health"`. Its `network` and `chainId` must be yours
    (see "Networks"), and its `factories` must be the ones in that table; otherwise do not use it and tell the human.
    Use only the URL the human gives you. The API builds and checks calls but holds no keys and cannot sign; you
    check what it returns against the chain before signing anything.
-4. **Know whether the API needs a key.** `/health` is always open; the escrow routes may not be. Check one:
+5. **Know whether the API needs a key.** `/health` is always open; the escrow routes may not be. Check one:
 
    ```bash
    curl -s -o /dev/null -w '%{http_code}\n' "$TW_API/escrow/single-release/v2/0x0000000000000000000000000000000000000000"
@@ -95,10 +97,10 @@ Read each one when it first applies, and skip the rest.
 | API URL ends with | `/testnet` | `/mainnet` |
 | Explorer | `https://explorer.testnet.arc.io` | `https://explorer.arc.io` |
 | USDC (ERC-20, 6 decimals) | `0x3600000000000000000000000000000000000000` | `0x3600000000000000000000000000000000000000` |
-| Single-release factory | `0x829fE7040797Df140636901e79F1bA448B7e9ae0` | `0x6a65ebD7820604446898df89CeA284a46E9B621c` |
-| Multi-release factory | `0x7B04302DCEC430D74e8e38B35Cef96EbaD51b7fC` | `0x69d4Fd89C4dCf43d2A08f4552eB15D66Cb9a6ab3` |
-| Single-release escrow implementation | `0x1F0E0C5b704B3e10609Bf4862071Db815a0c839b` | `0xc04bfd01e08bE40419581b8587b347df4beC15E5` |
-| Multi-release escrow implementation | `0xF7fBE8aca4D4A2A7552167246Df439931da26A5A` | `0xd9733C7775f55F877Eb32d62dE90F90Ddc138E28` |
+| Single-release factory | `0xF7A03AceC7F3e68D2aa80964eeF176C0c86d1cD5` | `0x13DD756d6b94a03004D0c8d6fF429DFAbCe83A52` |
+| Multi-release factory | `0x1caDf6E6b15e4415B9A3161F26740ac2B25e57a5` | `0x09F65499DF04586b7a23C6f6e78e461CeA26D8Ad` |
+| Single-release escrow implementation | `0x1bd004FdF28316E5626e8012E71C0f5Fb86681EC` | `0xe21FBd6eEAA09C8f9D2D8B3cA2Af00F0850B4313` |
+| Multi-release escrow implementation | `0xeE68B547c5Ba221CD565718236Bb585cc3b08dF0` | `0xA56400fE44246d6708b16194ab25Fe3dB755827A` |
 
 These addresses are the source of truth. If the API's `/health` lists other factories, do not use that API; tell the
 human.
@@ -141,30 +143,40 @@ circle wallet execute "approve(address,uint256)" <ESCROW> <AMOUNT_IN_BASE_UNITS>
   --address <YOUR_WALLET> --chain <CHAIN> --output json
 ```
 
-**2. Every escrow action: build it with the API, then send it through `execute(bytes)`.** The Circle CLI cannot pass
-array or tuple arguments, so the factories and every escrow accept any call as one `bytes` argument. The API gives you
-that argument in `transaction.data` (the whole call, selector included: pass it unchanged) and the contract in
-`transaction.to` (the factory for `deploy`, the escrow for everything else).
+**2. Every escrow action: build it with the API, then send the call it describes.** The API returns the call in
+`contractExecution`: the contract (`contractAddress`), the function (`abiFunctionSignature`) and one text per argument
+(`abiParameters`), ready for the CLI. The contract is the factory for `deploy` and the escrow for everything else.
+
+Build into a file, so that what you check is what you send. Every build can differ (a `deploy` gets a new address each
+time), and shell variables do not survive between commands.
 
 ```bash
-BUILT=$(curl -s -X POST "$TW_API/escrow/<KIND>/v2/<ACTION>" -H "x-api-key: $TW_API_KEY" \
-  -H 'content-type: application/json' -d '<BODY>')
-# If BUILT has a "code" field, it is an error: do not send. See "Common errors".
-echo "$BUILT" | jq -r '"to=\(.transaction.to) selector=\(.transaction.data[0:10])"'
-# Check both against "Check every build before you send it", then send:
-circle wallet execute "execute(bytes)" "$(echo "$BUILT" | jq -r .transaction.data)" \
-  --contract "$(echo "$BUILT" | jq -r .transaction.to)" \
-  --address <YOUR_WALLET> --chain <CHAIN> --output json
+curl -s -X POST "$TW_API/escrow/<KIND>/v2/<ACTION>" -H "x-api-key: $TW_API_KEY" \
+  -H 'content-type: application/json' -d '<BODY>' > build.json
+jq '.contractExecution // .' build.json
 ```
+
+If there is no `contractExecution`, the output is an error with a `code`: do not send. See "Common errors". Otherwise
+check it against "Check every build before you send it", and send that same file, without building again:
+
+```bash
+ARGS=(); while IFS= read -r -d '' a; do ARGS+=("$a"); done \
+  < <(jq -j '.contractExecution.abiParameters[] + "\u0000"' build.json)
+circle wallet execute --contract "$(jq -r .contractExecution.contractAddress build.json)" \
+  --address <YOUR_WALLET> --chain <CHAIN> --output json \
+  -- "$(jq -r .contractExecution.abiFunctionSignature build.json)" "${ARGS[@]}"
+```
+
+Run it in bash or zsh, and keep the flags before `--`, so that no text in the arguments is read as a flag.
 
 - `<KIND>` is `single-release` or `multi-release`, and `<ESCROW>` is the escrow address (`contractId`). Each
   reference file gives the bodies for its actions.
 - The wallet in the body (`signer`, `approver`…) must be **your** wallet, the same one you pass in `--address`.
 - The CLI waits for the transaction. Success is `data.state: "COMPLETE"` with a `data.txHash`.
-- An action without arguments (single-release `release-funds`) has only the 4-byte selector in `transaction.data`.
-  That is correct: send it as is.
-- Building sends nothing, so you can build as often as you need. Use only `transaction.to` and `transaction.data`;
-  the other fields are for wallets that sign raw transactions.
+- An action without arguments (single-release `release-funds`) has an empty `abiParameters`. That is correct: send it
+  as is.
+- Building sends nothing, so you can build as often as you need. Use only `contractExecution`; the other fields are
+  for wallets that sign raw transactions.
 - On testnet Circle sponsors the gas, so the `networkFee` in the result does not come out of your balance (on
   mainnet, see "Networks"). Check your USDC with
   `circle wallet balance --address <YOU> --chain <CHAIN> --output json`. USDC shows twice there, as the native gas
@@ -177,26 +189,27 @@ circle wallet execute "execute(bytes)" "$(echo "$BUILT" | jq -r .transaction.dat
 The API only prepares calls. Before you sign, check what it returned against the chain, so that a wrong or
 compromised API cannot send your money anywhere else. If any check fails, do not send anything; tell the human.
 
-1. **The contract (`transaction.to`):** for `deploy`, the factory of that kind and network in "Networks". For
-   every other action, the escrow you are working on, verified as below.
-2. **The function (the first 10 characters of `transaction.data`):** the selector of the action you built. Never send
-   `0x09c5eabe` (`execute` itself) inside `execute`.
+1. **The contract (`contractAddress`):** for `deploy`, the factory of that kind and network in "Networks". For every
+   other action, the escrow you are working on, verified as below.
+2. **The function (`abiFunctionSignature`, the name before the parenthesis):** the one for the action you built.
 
-   | Action | Single-release | Multi-release |
-   | --- | --- | --- |
-   | `deploy` (to the factory) | `0x9e9021cc` | `0x10a12b20` |
-   | `fund` | `0xceccdfc6` | `0xceccdfc6` |
-   | `change-milestone-status` | `0x54dc5cd8` | `0x54dc5cd8` |
-   | `approve-milestones` | `0x56241a4d` | `0x56241a4d` |
-   | `approve-and-release-milestones` | `0x4f16470c` | `0x4f16470c` |
-   | `release-funds` | `0x69d89575` | `0x36454a93` |
-   | `dispute-escrow` / `dispute-milestones` | `0xdbab74a7` | `0x4cdb20c6` |
-   | `resolve-dispute` | `0x4eb2f66e` | `0xb0ce343e` |
-   | `withdraw-remaining-funds` | `0xbca1c0c3` | `0xbca1c0c3` |
-   | `update-escrow` | `0x486ae091` | `0xcfc55829` |
-   | `manage-milestones` | `0x7b812b69` | `0x2f7844b3` |
+   | Action | Function |
+   | --- | --- |
+   | `deploy` (to the factory) | `createEscrow` |
+   | `fund` | `fundEscrow` |
+   | `change-milestone-status` | `changeMilestoneStatus` |
+   | `approve-milestones` | `approveMilestones` |
+   | `approve-and-release-milestones` | `approveAndReleaseMilestones` |
+   | `release-funds` | `releaseFunds` |
+   | `dispute-escrow` / `dispute-milestones` | `disputeEscrow` / `disputeMilestones` |
+   | `resolve-dispute` | `resolveDispute` |
+   | `withdraw-remaining-funds` | `withdrawRemainingFunds` |
+   | `update-escrow` | `updateEscrow` |
+   | `manage-milestones` | `manageMilestones` |
 
-3. **The escrow is a real Trustless Work escrow.** Check it once, before your first action on it (after a `deploy`,
+3. **The arguments (`abiParameters`):** read them, they are in plain text. Every value must be one you asked for, with
+   no wallet or amount you did not ask for. Amounts are in base units (1 USDC = `1000000`).
+4. **The escrow is a real Trustless Work escrow.** Check it once, before your first action on it (after a `deploy`,
    check the `contractId` you deployed). Every Trustless Work escrow is a minimal clone of the implementation in the
    table, and only the official factory can initialize one:
 
@@ -208,7 +221,7 @@ compromised API cannot send your money anywhere else. If any check fails, do not
    ```
 
    Without `VERIFIED`, it is not a Trustless Work escrow of that kind: approve no USDC to it and sign nothing for it.
-4. **The money:** a USDC approval goes only to a verified escrow, for exactly the amount you are about to fund, and
+5. **The money:** a USDC approval goes only to a verified escrow, for exactly the amount you are about to fund, and
    that amount is what the human agreed.
 
 ## Reading an escrow
