@@ -39,11 +39,12 @@ Build and send `change-milestone-status`, with one entry in `updates` per milest
 - Use a link the approver can open, as the description asks: a public URL, a pull request or an `ipfs://` CID. If
   the human tells you to use another location, tell the human who coordinates the job that the approver must be able
   to open it: a strict approver may dispute a link it cannot reach.
+- Open the link yourself before you deliver it. If it does not open, tell the human instead of delivering it.
 - Prefer a link to a fixed version (a commit, a release, an IPFS CID) over one whose content changes, such as a
   branch or a live page.
 - **Fingerprint what you deliver.** Once the file is final, put its SHA-256 after the link. Compute it with
-  `shasum -a 256 <file>` (or `sha256sum`), or, for a URL, `curl -sL <url> | shasum -a 256`. It lets the approver and
-  the dispute resolver check that they judge exactly what you delivered. An `ipfs://` CID already fingerprints its
+  `shasum -a 256 <file>` (or `sha256sum`), or, for a URL, `curl -fsSL -o delivered <url> && shasum -a 256 delivered`
+  (`-f` stops on a 404, so you never fingerprint an error page). It lets the approver and the dispute resolver check that they judge exactly what you delivered. An `ipfs://` CID already fingerprints its
   content.
 - Do not change a file after you deliver it. To fix something before it is judged, save a new file and deliver
   again, with its new link and hash.

@@ -23,6 +23,9 @@ role is missing a separate wallet instead of guessing. Two setups that work:
 
 Each role list takes 1 to 5 addresses. One Circle login can hold up to 5 Agent Wallets per chain.
 
+A wallet that only funds holds no role, so it cannot open a dispute. If the client must be able to dispute, give it a
+role, as both setups above do.
+
 ## Creating it
 
 Build `deploy` and send it (see "How every action is sent" in `SKILL.md`). Any wallet can deploy; the `signer` needs
@@ -81,7 +84,8 @@ resolver settles any disagreement with it.
    an address that is not `VERIFIED`.
 2. **Check the terms right before you fund.** The admin can change them until the first funding. Compare the amount,
    the token, the roles, the description and the milestones with what was agreed. If they changed without
-   agreement, do not fund; tell the human.
+   agreement, do not fund; tell the human. If you hold no role in an escrow someone else created, tell the human
+   before you fund: you will not be able to open a dispute on it.
 3. **Approve the USDC** directly with the CLI, to the verified escrow, for the exact amount in base units
    (amount × 1,000,000).
 4. **Build and send `fund`:** `{"contractId":"<ESCROW>","signer":"<YOU>","amount":1}`. If the approval is missing,
