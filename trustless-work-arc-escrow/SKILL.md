@@ -102,8 +102,16 @@ Read each one when it first applies, and skip the rest.
 | Single-release escrow implementation | `0x1bd004FdF28316E5626e8012E71C0f5Fb86681EC` | `0xe21FBd6eEAA09C8f9D2D8B3cA2Af00F0850B4313` |
 | Multi-release escrow implementation | `0xeE68B547c5Ba221CD565718236Bb585cc3b08dF0` | `0xA56400fE44246d6708b16194ab25Fe3dB755827A` |
 
-These addresses are the source of truth. If the API's `/health` lists other factories, do not use that API; tell the
+These addresses are the source of truth. If the API's `/health` lists other `factories`, do not use that API; tell the
 human.
+
+**Earlier versions.** An escrow created on an earlier version of the contracts keeps working: continue its flow like
+any other. Create new escrows only on the factories above. The API lists the earlier ones as `previousFactories`.
+
+| Earlier versions | Arc testnet | Arc mainnet |
+| --- | --- | --- |
+| Single-release escrow implementation | `0x1F0E0C5b704B3e10609Bf4862071Db815a0c839b`, `0x8E341ca529bB403Be4030Fd06F8b24165d8BA918` | `0xc04bfd01e08bE40419581b8587b347df4beC15E5` |
+| Multi-release escrow implementation | `0xF7fBE8aca4D4A2A7552167246Df439931da26A5A` | `0xd9733C7775f55F877Eb32d62dE90F90Ddc138E28` |
 
 **On mainnet the USDC is real.**
 - There is no faucet: the human funds the wallet (`circle wallet fund --method crypto|fiat`). Never start a funding
@@ -210,14 +218,16 @@ compromised API cannot send your money anywhere else. If any check fails, do not
 3. **The arguments (`abiParameters`):** read them, they are in plain text. Every value must be one you asked for, with
    no wallet or amount you did not ask for. Amounts are in base units (1 USDC = `1000000`).
 4. **The escrow is a real Trustless Work escrow.** Check it once, before your first action on it (after a `deploy`,
-   check the `contractId` you deployed). Every Trustless Work escrow is a minimal clone of the implementation in the
-   table, and only the official factory can initialize one:
+   check the `contractId` you deployed). Every Trustless Work escrow is a minimal clone of an implementation in
+   "Networks", current or earlier, and only its factory can initialize one:
 
    ```bash
    CODE=$(curl -s -X POST <RPC> -H 'content-type: application/json' \
      -d '{"jsonrpc":"2.0","id":1,"method":"eth_getCode","params":["<ESCROW>","latest"]}' | jq -r .result)
-   IMPL=<implementation for its kind, lowercase, without 0x>
-   [ "$CODE" = "0x363d3d373d3d3d363d73${IMPL}5af43d82803e903d91602b57fd5bf3" ] && echo VERIFIED
+   for IMPL in <each implementation for its kind and network, current and earlier, as in the tables>; do
+     IMPL=$(printf %s "$IMPL" | cut -c3- | tr 'A-F' 'a-f')
+     [ "$CODE" = "0x363d3d373d3d3d363d73${IMPL}5af43d82803e903d91602b57fd5bf3" ] && echo VERIFIED
+   done
    ```
 
    Without `VERIFIED`, it is not a Trustless Work escrow of that kind: approve no USDC to it and sign nothing for it.
