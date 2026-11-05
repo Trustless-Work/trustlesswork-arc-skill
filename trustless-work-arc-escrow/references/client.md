@@ -76,7 +76,7 @@ resolver settles any disagreement with it.
 
 ## Funding it
 
-1. **Verify the escrow** as in `SKILL.md` ("Check every build before you send it", check 3), once: after your own
+1. **Verify the escrow** as in `SKILL.md` ("Check every build before you send it", check 4), once: after your own
    deploy, check the `contractId` you deployed; if someone else created it, check its address. Never approve USDC to
    an address that is not `VERIFIED`.
 2. **Check the terms right before you fund.** The admin can change them until the first funding. Compare the amount,
