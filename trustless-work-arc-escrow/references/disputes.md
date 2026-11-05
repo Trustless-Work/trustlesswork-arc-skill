@@ -11,7 +11,7 @@ decides who is right under the agreement and moves the funds accordingly.
 
 - **Who can open one:** approvers, service providers, release signers, the receiver and the platform. Never the
   dispute resolver. The admin only if it is also the platform. In multi-release, a receiver can dispute only its own
-  milestones.
+  milestones. A wallet that only funded the escrow has no role, so it cannot open one.
 - **When:** at any stage before the escrow is released or resolved (multi-release: before that milestone is), even
   before the delivery. Only one dispute can be open at a time (multi-release: per milestone).
 - **What it blocks:** while it is open, nothing can be released. The service provider can still update the status
