@@ -103,21 +103,18 @@ You are the judge. Be neutral: you do not work for whoever opened the dispute, o
 | Multi-release | Add `"milestoneIndexes":[0]` with the disputed milestones |
 
 **Check who the build pays before you send it.** Besides the checks in `SKILL.md` ("Check every build before you
-send it"), the recipients and amounts travel inside `transaction.data`: decode them and compare them with your
-decision. This works for `resolve-dispute` and `withdraw-remaining-funds` of both kinds:
+send it"), compare the recipients and amounts with your decision. They are in plain text in `abiParameters`, in this
+order, for `resolve-dispute` and `withdraw-remaining-funds` of both kinds (multi-release `resolve-dispute` has the
+milestone indexes first):
 
 ```bash
-python3 -c '
-import sys
-d = bytes.fromhex(sys.argv[1][10:]); w = lambda i: int.from_bytes(d[i:i+32], "big")
-arrays = [[w(w(32*k) + 32 + 32*j) for j in range(w(w(32*k)))] for k in range(len(d) // 32) if 32*k < w(0)]
-print("to:", ["0x%040x" % a for a in arrays[-2]], "amounts (base units):", arrays[-1])
-' "$(echo "$BUILT" | jq -r .transaction.data)"
+jq -r '.contractExecution.abiParameters[]' build.json
+# ["0xRECEIVER","0xFUNDER"]
+# ["750000","250000"]
 ```
 
-With Foundry installed, `cast calldata-decode 'resolveDispute(address[],uint256[])' <data>` does the same
-(multi-release: `'resolveDispute(uint32[],address[],uint256[])'`). If the wallets or amounts differ from yours, do
-not send it.
+The amounts are in base units (1 USDC = `1000000`) and paired by position. If the wallets or amounts differ from yours,
+do not send it.
 
 To confirm the payout, read the wallets' USDC before and after you resolve, for example with
 `circle contract query "balanceOf(address)" <ADDRESS> --contract 0x3600000000000000000000000000000000000000 --chain <CHAIN> --output json`

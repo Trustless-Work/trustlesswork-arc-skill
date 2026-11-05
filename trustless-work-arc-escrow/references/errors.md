@@ -35,6 +35,7 @@ Circle CLI errors:
 
 | Error | Meaning | What to do |
 | --- | --- | --- |
-| `Fails to perform transaction estimation` or `ESTIMATION_ERROR` | The call would fail on-chain | Build it again with the API to get the exact `code`. Do not retry blindly |
+| `Fails to perform transaction estimation`, `Estimate fee execution reverted` or `ESTIMATION_ERROR` | The call would fail on-chain | Build it again with the API to get the exact `code`. Do not retry blindly |
+| `takes N argument(s), got M`, or `must be a JSON array` | The arguments did not reach the CLI as the API returned them | Use the command in "How every action is sent" (`SKILL.md`) unchanged, with the flags before `--` |
 | Not logged in, or the token expired | The CLI session is gone | Ask the human to log in again (Circle's `setup.md`) |
 | Terms not accepted | First use of the CLI | Ask the human to accept them. Never accept them yourself |
